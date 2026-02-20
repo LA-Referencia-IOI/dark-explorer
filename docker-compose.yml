@@ -1,0 +1,128 @@
+# =============================================================================
+#  dark-explorer — docker-compose.yml
+#  Standalone Blockscout block explorer.
+#  Configure the target RPC node in .env before starting.
+#
+#  Usage:
+#    1. Edit .env — set RPC_HTTP_URL, RPC_WS_URL, CHAIN_ID, NETWORK_NAME
+#    2. docker compose up -d
+#    3. Open http://localhost:${EXPLORER_PORT}
+# =============================================================================
+
+name: dark-explorer
+
+services:
+
+  # ============================================================
+  # PostgreSQL — Blockscout persistent storage
+  # ============================================================
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:15-alpine}
+    container_name: explorer-postgres
+    restart: unless-stopped
+    networks:
+      - explorer-net
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-blockscout}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-explorer_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-blockscout}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-blockscout} -d ${POSTGRES_DB:-blockscout}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ============================================================
+  # Redis — Blockscout cache layer
+  # ============================================================
+  redis:
+    image: ${REDIS_IMAGE:-redis:7-alpine}
+    container_name: explorer-redis
+    restart: unless-stopped
+    networks:
+      - explorer-net
+    command: ["redis-server", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ============================================================
+  # Blockscout — Block Explorer UI
+  # ============================================================
+  blockscout:
+    image: ${BLOCKSCOUT_IMAGE:-blockscout/blockscout:6.8.1}
+    container_name: explorer-blockscout
+    restart: unless-stopped
+    networks:
+      - explorer-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    extra_hosts:
+      # Allows containers to reach host machine via host.docker.internal
+      - "host.docker.internal:host-gateway"
+    environment:
+      # ── RPC connection (configured in .env) ──────────────────
+      ETHEREUM_JSONRPC_VARIANT: besu
+      ETHEREUM_JSONRPC_HTTP_URL: ${RPC_HTTP_URL:-http://host.docker.internal:8545}
+      ETHEREUM_JSONRPC_WS_URL: ${RPC_WS_URL:-ws://host.docker.internal:8546}
+      ETHEREUM_JSONRPC_TRACE_URL: ${RPC_HTTP_URL:-http://host.docker.internal:8545}
+
+      # ── Database ─────────────────────────────────────────────
+      DATABASE_URL: postgresql://${POSTGRES_USER:-blockscout}:${POSTGRES_PASSWORD:-explorer_secret}@postgres:5432/${POSTGRES_DB:-blockscout}?ssl=false
+      SECRET_KEY_BASE: dark_explorer_secret_key_base_minimum_64_chars_padded_here_ok_1234
+
+      # ── Redis ────────────────────────────────────────────────
+      ACCOUNT_REDIS_URL: redis://redis:6379/0
+
+      # ── Network branding ─────────────────────────────────────
+      CHAIN_ID: "${CHAIN_ID:-2025}"
+      NETWORK: ${NETWORK_NAME:-Dark Explorer}
+      SUBNETWORK: ${NETWORK_SUBNAME:-Private Network}
+
+      # ── Explorer settings ────────────────────────────────────
+      PORT: 4000
+      MIX_ENV: prod
+      DISABLE_EXCHANGE_RATES: "true"
+      DISABLE_KNOWN_TOKENS: "true"
+      SHOW_PRICE_CHART: "false"
+      SHOW_TXS_CHART: "true"
+      POOL_SIZE: 10
+      POOL_SIZE_API: 5
+      ECTO_USE_SSL: "false"
+      API_V2_ENABLED: "true"
+
+    ports:
+      - "${EXPLORER_PORT:-25000}:4000"
+    command:
+      - /bin/sh
+      - -c
+      - |
+        bin/blockscout eval "Elixir.Explorer.ReleaseTasks.create_and_migrate()"
+        bin/blockscout start
+
+# =============================================================================
+# Persistent volumes
+# =============================================================================
+volumes:
+  postgres-data:
+    name: dark-explorer-postgres-data
+  redis-data:
+    name: dark-explorer-redis-data
+
+# =============================================================================
+# Internal network (Postgres and Redis are not exposed to the host)
+# =============================================================================
+networks:
+  explorer-net:
+    name: explorer-net
+    driver: bridge

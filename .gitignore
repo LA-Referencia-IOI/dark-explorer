@@ -1,0 +1,11 @@
+# dark-explorer — .gitignore
+
+# Docker runtime data (Postgres & Redis volumes are managed by Docker, not git)
+# Nothing sensitive here — the only file users should protect is .env
+# if it contains real credentials.
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
