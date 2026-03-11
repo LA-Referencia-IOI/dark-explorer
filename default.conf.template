@@ -1,0 +1,32 @@
+server {
+    listen 80;
+    server_name localhost;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Proxy HTTP RPC to observer boot node
+    location /jsonrpc {
+        rewrite ^/jsonrpc(.*)$ /$1 break;
+        proxy_pass ${RPC_HTTP_URL};
+        proxy_redirect off;
+        proxy_set_header Host $host;
+    }
+
+    # Proxy WebSocket RPC to observer boot node
+    location /jsonws {
+        proxy_pass ${RPC_HTTP_URL}/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+    }
+
+    location / {
+        try_files $uri /index.html;
+    }
+
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
+    }
+}
