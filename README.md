@@ -1,15 +1,13 @@
 # dark-explorer 🔍
 
-Standalone **Blockscout** block explorer for any EVM-compatible blockchain network.  
+Standalone **Lite Block Explorer** for any EVM-compatible blockchain network.  
 Plug it into any running node by editing a single `.env` file.
 
 ## What's included
 
-| Container             | Role                    | Port                               |
-| --------------------- | ----------------------- | ---------------------------------- |
-| `explorer-blockscout` | Block Explorer UI + API | **configurable** (default `25000`) |
-| `explorer-postgres`   | Blockscout database     | internal                           |
-| `explorer-redis`      | Blockscout cache        | internal                           |
+| Container       | Role                    | Port                               |
+| --------------- | ----------------------- | ---------------------------------- |
+| `explorer-lite` | Block Explorer UI + API | **configurable** (default `25000`) |
 
 ## Quick Start
 
@@ -20,12 +18,6 @@ Edit `.env` and point it to your blockchain node:
 ```env
 # RPC endpoints of the target node
 RPC_HTTP_URL=http://host.docker.internal:8545
-RPC_WS_URL=ws://host.docker.internal:8546
-
-# Network info
-CHAIN_ID=2025
-NETWORK_NAME=My Network
-NETWORK_SUBNAME=Private QBFT
 
 # Port where the UI will be available on your machine
 EXPLORER_PORT=25000
@@ -47,26 +39,16 @@ docker compose up -d
 http://localhost:25000   (or whatever EXPLORER_PORT you configured)
 ```
 
-> First boot takes ~1–2 minutes for database migrations to complete.
-
 ---
 
 ## Configuration Reference
 
 All settings live in `.env`:
 
-| Variable            | Default                            | Description                 |
-| ------------------- | ---------------------------------- | --------------------------- |
-| `RPC_HTTP_URL`      | `http://host.docker.internal:8545` | HTTP JSON-RPC endpoint      |
-| `RPC_WS_URL`        | `ws://host.docker.internal:8546`   | WebSocket JSON-RPC endpoint |
-| `CHAIN_ID`          | `2025`                             | Network chain ID            |
-| `NETWORK_NAME`      | `Dark Explorer`                    | Network display name in UI  |
-| `NETWORK_SUBNAME`   | `Private Network`                  | Sub-label in UI             |
-| `EXPLORER_PORT`     | `25000`                            | Host port for Blockscout UI |
-| `BLOCKSCOUT_IMAGE`  | `blockscout/blockscout:6.8.1`      | Blockscout Docker image     |
-| `POSTGRES_IMAGE`    | `postgres:15-alpine`               | Postgres image              |
-| `REDIS_IMAGE`       | `redis:7-alpine`                   | Redis image                 |
-| `POSTGRES_PASSWORD` | `explorer_secret`                  | Database password           |
+| Variable        | Default                            | Description               |
+| --------------- | ---------------------------------- | ------------------------- |
+| `RPC_HTTP_URL`  | `http://host.docker.internal:8545` | HTTP JSON-RPC endpoint    |
+| `EXPLORER_PORT` | `25000`                            | Host port for Explorer UI |
 
 ---
 
@@ -76,10 +58,6 @@ All settings live in `.env`:
 
 ```env
 RPC_HTTP_URL=http://host.docker.internal:8545
-RPC_WS_URL=ws://host.docker.internal:8546
-CHAIN_ID=2025
-NETWORK_NAME=Dark Env
-NETWORK_SUBNAME=Private QBFT
 EXPLORER_PORT=25000
 ```
 
@@ -87,9 +65,6 @@ EXPLORER_PORT=25000
 
 ```env
 RPC_HTTP_URL=http://203.0.113.10:8545
-RPC_WS_URL=ws://203.0.113.10:8546
-CHAIN_ID=2025
-NETWORK_NAME=My Remote Network
 EXPLORER_PORT=25000
 ```
 
@@ -111,17 +86,14 @@ docker compose -p dark-explorer-2 up -d
 # Start
 docker compose up -d
 
-# Stop (keeps data)
+# Stop
 docker compose stop
 
-# Stop and remove containers (keeps volumes/data)
+# Stop and remove containers
 docker compose down
 
-# Wipe all data and start fresh
-docker compose down -v
-
 # Follow logs
-docker compose logs -f blockscout
+docker compose logs -f explorer-lite
 
 # Check status
 docker compose ps
