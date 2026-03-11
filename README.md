@@ -1,41 +1,41 @@
 # dark-explorer 🔍
 
-Standalone **Lite Block Explorer** para qualquer rede EVM-compatível.  
-Aponte para qualquer node rodando, editando apenas um arquivo `.env`.
+Standalone **Lite Block Explorer** for any EVM-compatible blockchain network.  
+Point it to any running node by editing a single `.env` file.
 
-> Alternativa ultra-leve ao Blockscout: **1 container**, **zero banco de dados**, arranque imediato.
+> Ultra-lightweight alternative to Blockscout: **1 container**, **zero database**, instant startup.
 
 ## Containers
 
-| Container       | Função               | Porta                         |
-| --------------- | -------------------- | ----------------------------- |
-| `explorer-lite` | UI do Block Explorer | configurável (padrão `25000`) |
+| Container       | Role              | Port                           |
+| --------------- | ----------------- | ------------------------------ |
+| `explorer-lite` | Block Explorer UI | configurable (default `25000`) |
 
 ---
 
 ## Quick Start
 
-### 1. Configure o `.env`
+### 1. Configure `.env`
 
 ```env
-# Endpoint HTTP JSON-RPC do node alvo
+# HTTP JSON-RPC endpoint of the target node
 RPC_HTTP_URL=http://host.docker.internal:8545
 
-# Porta onde a UI ficará acessível no host
+# Port where the UI will be available on your machine
 EXPLORER_PORT=25000
 ```
 
-> **`host.docker.internal`** resolve para o seu host a partir de dentro do Docker.  
-> Use para nodes locais (ex: `docker-compose` na mesma máquina).  
-> Para nodes remotos, use o IP diretamente: `http://192.168.1.100:8545`
+> **`host.docker.internal`** resolves to your host machine from inside Docker.  
+> Use it when the node is running locally (e.g. via `docker-compose` on the same host).  
+> For remote nodes, use the IP directly: `http://192.168.1.100:8545`
 
-### 2. Inicie o explorer
+### 2. Start the explorer
 
 ```bash
 docker compose up -d
 ```
 
-### 3. Abra a UI
+### 3. Open the UI
 
 ```
 http://localhost:25000
@@ -43,77 +43,77 @@ http://localhost:25000
 
 ---
 
-## Referência de Configuração
+## Configuration Reference
 
-| Variável        | Padrão                             | Descrição                      |
-| --------------- | ---------------------------------- | ------------------------------ |
-| `RPC_HTTP_URL`  | `http://host.docker.internal:8545` | Endpoint HTTP JSON-RPC do node |
-| `EXPLORER_PORT` | `25000`                            | Porta da UI no host            |
+| Variable        | Default                            | Description                   |
+| --------------- | ---------------------------------- | ----------------------------- |
+| `RPC_HTTP_URL`  | `http://host.docker.internal:8545` | HTTP JSON-RPC endpoint        |
+| `EXPLORER_PORT` | `25000`                            | Host port for the Explorer UI |
 
 ---
 
-## Casos de Uso
+## Use Cases
 
-### Conectar à dark-env (rede QBFT local)
+### Connect to dark-env (local QBFT network)
 
 ```env
 RPC_HTTP_URL=http://host.docker.internal:8545
 EXPLORER_PORT=25000
 ```
 
-### Conectar a um node remoto
+### Connect to a remote node
 
 ```env
 RPC_HTTP_URL=http://203.0.113.10:8545
 EXPLORER_PORT=25000
 ```
 
-### Rodar dois explorers ao mesmo tempo (redes diferentes)
+### Run two explorers simultaneously (different networks)
 
 ```bash
 cp -r dark-explorer dark-explorer-2
 cd dark-explorer-2
-# edite .env: EXPLORER_PORT=25001, RPC_HTTP_URL=...
+# Edit .env: EXPLORER_PORT=25001, RPC_HTTP_URL=...
 docker compose -p dark-explorer-2 up -d
 ```
 
 ---
 
-## Comandos Úteis
+## Useful Commands
 
 ```bash
-# Iniciar
+# Start
 docker compose up -d
 
-# Parar
+# Stop
 docker compose stop
 
-# Parar e remover o container
+# Stop and remove containers
 docker compose down
 
-# Ver logs em tempo real
+# Follow logs
 docker compose logs -f explorer-lite
 
-# Ver status
+# Check status
 docker compose ps
 ```
 
-## Estrutura do Projeto
+## Project Structure
 
 ```
 dark-explorer/
-├── docker-compose.yml       # Definição do serviço
-├── default.conf.template    # Template Nginx (proxy /jsonrpc → node)
-├── docker-entrypoint.sh     # Patch de URL no bundle JS ao iniciar
-├── .env                     # ← Edite para apontar ao seu node
+├── docker-compose.yml       # Service definition
+├── default.conf.template    # Nginx template (proxies /jsonrpc → node)
+├── docker-entrypoint.sh     # Patches the JS bundle URL at startup
+├── .env                     # ← Edit this to point to your node
 └── README.md
 ```
 
-## Como Funciona
+## How It Works
 
 ```
-Navegador  ──GET /──►  Nginx (porta 25000)  ──serve JS/HTML──►  Navegador
-Navegador  ──POST /jsonrpc──►  Nginx  ──proxy_pass──►  Node RPC (porta 8545)
+Browser  ──GET /──►  Nginx (port 25000)  ──serves JS/HTML──►  Browser
+Browser  ──POST /jsonrpc──►  Nginx  ──proxy_pass──►  Node RPC (port 8545)
 ```
 
-O Nginx serve a interface estática (SPA Vue.js) e faz proxy das chamadas RPC do browser para o seu node, evitando problemas de CORS.
+Nginx serves the static SPA (Vue.js) and proxies all RPC calls from the browser to your node, avoiding CORS issues.
