@@ -2,7 +2,7 @@ name: dark-explorer
 
 services:
   lite-explorer:
-    image: ${LITE_EXPLORER_IMAGE:-local/block-explorer-light:dev}
+    build: .
     container_name: explorer-lite
     restart: unless-stopped
     ports:

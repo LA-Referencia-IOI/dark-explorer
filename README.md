@@ -32,6 +32,10 @@ EXPLORER_PORT=25000
 ### 2. Start the explorer
 
 ```bash
+# First run — builds the image from the local Dockerfile
+docker compose up -d --build
+
+# Subsequent runs
 docker compose up -d
 ```
 
@@ -102,6 +106,8 @@ docker compose ps
 
 ```
 dark-explorer/
+├── Dockerfile               # Builds the explorer image (Nginx + dist/)
+├── dist/                    # Pre-built Vue.js SPA assets
 ├── docker-compose.yml       # Service definition
 ├── default.conf.template    # Nginx template (proxies /jsonrpc → node)
 ├── docker-entrypoint.sh     # Patches the JS bundle URL at startup
