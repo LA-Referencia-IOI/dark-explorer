@@ -19,15 +19,15 @@ Point it to any running node by editing a single `.env` file.
 
 ```env
 # HTTP JSON-RPC endpoint of the target node
-RPC_HTTP_URL=http://host.docker.internal:8545
+RPC_HTTP_URL=http://blockchain-rpc:8545
 
 # Port where the UI will be available on your machine
 EXPLORER_PORT=25000
 ```
 
-> **`host.docker.internal`** resolves to your host machine from inside Docker.  
-> Use it when the node is running locally (e.g. via `docker-compose` on the same host).  
-> For remote nodes, use the IP directly: `http://192.168.1.100:8545`
+The deployer connects the explorer to the shared `dark-apps` network and
+uses the `blockchain-rpc` Docker alias. For an independently run explorer, a
+different reachable RPC URL may still be supplied explicitly.
 
 ### 2. Start the explorer
 
@@ -51,7 +51,7 @@ http://localhost:25000
 
 | Variable        | Default                            | Description                   |
 | --------------- | ---------------------------------- | ----------------------------- |
-| `RPC_HTTP_URL`  | `http://host.docker.internal:8545` | HTTP JSON-RPC endpoint        |
+| `RPC_HTTP_URL`  | `http://blockchain-rpc:8545`        | HTTP JSON-RPC endpoint        |
 | `EXPLORER_PORT` | `25000`                            | Host port for the Explorer UI |
 
 ---
@@ -61,7 +61,7 @@ http://localhost:25000
 ### Connect to dark-env (local QBFT network)
 
 ```env
-RPC_HTTP_URL=http://host.docker.internal:8545
+RPC_HTTP_URL=http://blockchain-rpc:8545
 EXPLORER_PORT=25000
 ```
 
