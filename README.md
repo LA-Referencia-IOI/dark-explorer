@@ -20,6 +20,7 @@ Point it to any running node by editing a single `.env` file.
 ```env
 # HTTP JSON-RPC endpoint of the target node
 RPC_HTTP_URL=http://blockchain-rpc:8545
+EXPLORER_BASE_PATH=/explorer
 
 # Port where the UI will be available on your machine
 EXPLORER_PORT=25000
@@ -51,8 +52,9 @@ http://localhost:25000
 
 | Variable        | Default                            | Description                   |
 | --------------- | ---------------------------------- | ----------------------------- |
-| `RPC_HTTP_URL`  | `http://blockchain-rpc:8545`        | HTTP JSON-RPC endpoint        |
-| `EXPLORER_PORT` | `25000`                            | Host port for the Explorer UI |
+| `RPC_HTTP_URL` | `http://blockchain-rpc:8545` | HTTP JSON-RPC endpoint |
+| `EXPLORER_BASE_PATH` | `/explorer` | Public reverse-proxy mount path |
+| `EXPLORER_PORT` | `25000` | Host port for the Explorer UI |
 
 ---
 
@@ -62,6 +64,7 @@ http://localhost:25000
 
 ```env
 RPC_HTTP_URL=http://blockchain-rpc:8545
+EXPLORER_BASE_PATH=/explorer
 EXPLORER_PORT=25000
 ```
 
@@ -119,7 +122,8 @@ dark-explorer/
 
 ```
 Browser  ──GET /──►  Nginx (port 25000)  ──serves JS/HTML──►  Browser
-Browser  ──POST /jsonrpc──►  Nginx  ──proxy_pass──►  Node RPC (port 8545)
+Browser  ──POST /explorer/jsonrpc──►  Edge proxy  ──►  Explorer /jsonrpc
+        ──proxy_pass──►  Node RPC (port 8545)
 ```
 
 Nginx serves the static SPA (Vue.js) and proxies all RPC calls from the browser to your node, avoiding CORS issues.
